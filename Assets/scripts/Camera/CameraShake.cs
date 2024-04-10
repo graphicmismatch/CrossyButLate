@@ -54,8 +54,8 @@ public class CameraShake : MonoBehaviour
     }
     private void ShakeM()
     {
-        
-        cameraTransform.position = _orignalPosOfCam + Random.insideUnitSphere * shakeFrequency;
+        Vector3 pos = _orignalPosOfCam + Random.insideUnitSphere * shakeFrequency;
+        cameraTransform.position = new Vector3(pos.x,pos.y, Player.rbref.transform.position.z + cf.offset.z);
         setpos();
     }
 

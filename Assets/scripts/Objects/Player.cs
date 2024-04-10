@@ -25,6 +25,7 @@ public class Player : MonoBehaviour
     public bool phit;
     public Vector3 ogGrav;
     public bool onramp = false;
+    public AudioClip tyrepop;
     // Start is called before the first frame update
     void Start()
     {
@@ -69,7 +70,7 @@ public class Player : MonoBehaviour
             Physics.gravity = ogGrav;
         }
         //addforce
-        rb.AddForce(new Vector3(inp * speed * 1.7f * Time.deltaTime, 0, sp), ForceMode.VelocityChange);
+        rb.AddForce(new Vector3(inp * speed * 1.7f * Time.deltaTime*(map(rb.velocity.z, 0, 125, 1f, 1.1f)), 0, sp), ForceMode.VelocityChange);
         RaycastHit[] hits;
         hits = Physics.BoxCastAll(coll.bounds.center, coll.bounds.size / 2, transform.forward, Quaternion.identity, 0.5f);
         if (hits.Length > 0)
@@ -81,27 +82,30 @@ public class Player : MonoBehaviour
                     if (hit.transform.gameObject.GetComponent<Rigidbody>().isKinematic)
                     {
                         hit.transform.gameObject.GetComponent<Ducks>().duckhit();
-                        rb.AddForce(-rb.velocity * 0.6f, ForceMode.Impulse);
                         kills++;
                         hitsum = true;
                     }
                 }
-                if (hit.transform.tag == "Spike")
+                else if (hit.transform.tag == "Spike")
                 {
                     rb.AddForce(-rb.velocity * 2, ForceMode.Impulse);
                     t /= 2;
                     Destroy(hit.transform.gameObject);
                     hitsum = true;
+                    AudioSource.PlayClipAtPoint(tyrepop, Camera.main.transform.position);
                 }
-                if (hit.transform.tag == "Ramp")
+                else if (hit.transform.tag == "Ramp")
                 {
-
-                   
                     onramp = true;
                     updatedrampstate = true;
-
-                    
                 }
+                else if (hit.transform.tag == "Barrel")
+                {
+                    hit.transform.gameObject.GetComponent<Barrel>().explode();
+                    rb.AddForce(-rb.velocity + new Vector3(0,1,0) * 2000f, ForceMode.Impulse);
+                    t /= 2;
+                }
+
             }
         }
 

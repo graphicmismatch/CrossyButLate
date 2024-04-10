@@ -10,7 +10,7 @@ public class SpawnerScript : MonoBehaviour
     public GameObject[] spikes;
 
     public GameObject[] ramps;
-
+    public GameObject[] barrels;
     public static bool spawn = true;
     // Start is called before the first frame update
     void Start()
@@ -28,6 +28,10 @@ public class SpawnerScript : MonoBehaviour
             foreach (Spawn g in dp)
             {
                 g.spawn(Random.Range(0, 4) == 1);
+            }
+            foreach (GameObject g in barrels)
+            {
+                g.SetActive(Random.Range(0, 100) == 1);
             }
         }
     }
