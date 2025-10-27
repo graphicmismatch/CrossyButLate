@@ -26,6 +26,12 @@ public class Player : MonoBehaviour
     public Vector3 ogGrav;
     public bool onramp = false;
     public AudioClip tyrepop;
+    public float maxHealth;
+    public float health;
+    public Image healthBar;
+    public bool exploded;
+
+    public bool dead;
     // Start is called before the first frame update
     void Start()
     {
@@ -38,6 +44,7 @@ public class Player : MonoBehaviour
         phit = false;
         onramp = false;
         ogGrav = Physics.gravity;
+        changeHealth(maxHealth);
     }
 
     // Update is called once per frame
@@ -54,7 +61,7 @@ public class Player : MonoBehaviour
         //fake physics based rotation
         this.transform.eulerAngles = new Vector3(0, map(inp, -1, 1, -14, 14), 0);
         //clampypos
-        if (!onramp)
+        if (!onramp && !exploded)
         {
             this.transform.position = new Vector3(this.transform.position.x, clamp(0.3f, 0.35f, this.transform.position.y), this.transform.position.z);
         }
@@ -70,7 +77,7 @@ public class Player : MonoBehaviour
             Physics.gravity = ogGrav;
         }
         //addforce
-        rb.AddForce(new Vector3(inp * speed * 1.7f * Time.deltaTime*(map(rb.velocity.z, 0, 125, 1f, 1.1f)), 0, sp), ForceMode.VelocityChange);
+        rb.AddForce(new Vector3(inp * speed * 1.7f * Time.deltaTime*(map(rb.linearVelocity.z, 0, 125, 1f, 1.1f)), 0, sp), ForceMode.VelocityChange);
         RaycastHit[] hits;
         hits = Physics.BoxCastAll(coll.bounds.center, coll.bounds.size / 2, transform.forward, Quaternion.identity, 0.5f);
         if (hits.Length > 0)
@@ -84,15 +91,17 @@ public class Player : MonoBehaviour
                         hit.transform.gameObject.GetComponent<Ducks>().duckhit();
                         kills++;
                         hitsum = true;
+                        changeHealth(2);
                     }
                 }
                 else if (hit.transform.tag == "Spike")
                 {
-                    rb.AddForce(-rb.velocity * 2, ForceMode.Impulse);
+                    rb.AddForce(-rb.linearVelocity * 2, ForceMode.Impulse);
                     t /= 2;
                     Destroy(hit.transform.gameObject);
                     hitsum = true;
                     AudioSource.PlayClipAtPoint(tyrepop, Camera.main.transform.position);
+                    changeHealth(-10);
                 }
                 else if (hit.transform.tag == "Ramp")
                 {
@@ -102,26 +111,30 @@ public class Player : MonoBehaviour
                 else if (hit.transform.tag == "Barrel")
                 {
                     hit.transform.gameObject.GetComponent<Barrel>().explode();
-                    rb.AddForce(-rb.velocity + new Vector3(0,1,0) * 2000f, ForceMode.Impulse);
+                    rb.AddForce(new Vector3(Random.Range(-5f,5f),4.3f,-65), ForceMode.VelocityChange);
                     t /= 2;
+                    exploded = true;
+                    updatedrampstate = true;
+                    changeHealth(-80);
                 }
 
             }
         }
 
-        if (onramp && !updatedrampstate)
+        if ((exploded||onramp) && !updatedrampstate)
         {
             if (this.transform.position.y <= 0.35f)
             {
                 onramp = false;
+                exploded = false;
             }
             
         }
 
 
-        if (125 - rb.velocity.z > 5)
+        if (125 - rb.linearVelocity.z > 5)
         {
-            speedmeter.fillAmount = map(rb.velocity.z, 0, 125, 0, 1f);
+            speedmeter.fillAmount = map(rb.linearVelocity.z, 0, 125, 0, 1f);
 
         }
         else
@@ -132,14 +145,14 @@ public class Player : MonoBehaviour
         engine.pitch = map(speedmeter.fillAmount, 0, 1, 0, 3f);
 
 
-        if (!hitsum && !phit && rb.velocity.z < 3f)
+        if (!hitsum && !phit && rb.linearVelocity.z < 3f)
         {
             rb.AddExplosionForce(10, new Vector3(transform.position.x, this.transform.position.y - 0.5f, this.transform.position.z), 3);
             //rb.AddForce(0, 0, prevspeed, ForceMode.VelocityChange);
             print("yeppers");
         }
 
-        prevspeed = rb.velocity.z;
+        prevspeed = rb.linearVelocity.z;
         phit = hitsum;
 
         t += Time.deltaTime;
@@ -168,6 +181,25 @@ public class Player : MonoBehaviour
         return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1));
     }
 
+    public void changeHealth(float delta) {
+        health = Mathf.Clamp(health + delta, 0, maxHealth);
+        if (health <= 0 || Mathf.Approximately(health, 0)) {
+            die();
+        }
+        float curr = healthBar.fillAmount;
+        LeanTween.value(this.gameObject, (float x, object o) => { healthBar.fillAmount = x; }, curr,health/maxHealth,0.2f);
+    }
+    public void die() {
+        if (GameManager.endless)
+        {
+            if (GameManager.instance != null)
+            {
+                DeathScreenManager.time = time;
+                DeathScreenManager.kills = kills;
+            }
+        }
+            FadetoBlackthing.startanim();
+    }
     public void zeroposition()
     {
         this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y, 0);

@@ -13,7 +13,7 @@ public class ObjBehaviour : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (transform.position.z - Player.rbref.transform.position.z < -50)
+        if (transform.position.z - Player.rbref.transform.position.z < -100)
         {
             Destroy(this.gameObject);
         }

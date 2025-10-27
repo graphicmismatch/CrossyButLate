@@ -21,6 +21,6 @@ public class SceneChan : MonoBehaviour
 
     public void Setendless(bool set)
     {
-        roadgen.endless = set;
+        GameManager.endless = set;
     }
 }

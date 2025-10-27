@@ -22,7 +22,14 @@ public class FadetoBlackthing : MonoBehaviour
 
             if (fade.color.a >= 1)
             {
-                SceneChan.change("EndScene");
+
+                if (!GameManager.endless)
+                {
+                    SceneChan.change("EndScene");
+                }
+                else {
+                    SceneChan.change("DeathScene");
+                }
             }
         }
     }

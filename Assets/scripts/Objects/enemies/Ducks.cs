@@ -42,7 +42,7 @@ public class Ducks : MonoBehaviour
     public void duckhit()
     {
         rb.isKinematic = false;
-        Vector3 imp = Player.rbref.velocity;
+        Vector3 imp = Player.rbref.linearVelocity;
         imp = new Vector3(imp.x + Random.Range(-0.6f, 0.6f), (imp.y + 2) * 3f, imp.z) * 2f;
         CameraShake.sc.shake(0.2f);
 
@@ -50,9 +50,11 @@ public class Ducks : MonoBehaviour
 
         rb.AddForce(imp, ForceMode.Impulse);
 
-        Player.t -= 1f;
+        Player.t -= 0.1f;
 
         StartCoroutine(dest());
+        DeadDuckManager.duckKilled();
+        transform.tag = "Untagged";
     }
 
     public IEnumerator dest()

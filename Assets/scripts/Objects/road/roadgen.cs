@@ -8,7 +8,7 @@ public class roadgen : MonoBehaviour
     public int lastz = 0;
     public int length;
     public static UnityEvent zeroposition = new UnityEvent();
-    public static bool endless;
+   
     public int size;
     public int renderdist;
     public int blocksperloop;
@@ -21,7 +21,7 @@ public class roadgen : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!endless)
+        if (!GameManager.endless)
         {
             if (length >= 300)
             {
